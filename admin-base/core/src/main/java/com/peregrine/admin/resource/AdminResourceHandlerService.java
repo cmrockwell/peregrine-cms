@@ -1524,7 +1524,7 @@ public class AdminResourceHandlerService
         return answer;
     }
 
-    private void updateTitle(Resource resource, String title) {
+    public void updateTitle(Resource resource, String title) {
         if (JCR_CONTENT.equals(resource.getName())) {
             ValueMap properties = getModifiableProperties(resource, false);
             if (properties.containsKey(JCR_TITLE)) {

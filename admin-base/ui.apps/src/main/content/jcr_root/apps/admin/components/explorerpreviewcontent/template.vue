@@ -119,7 +119,7 @@
 
       <template v-else-if="isTab(Tab.ACTIONS)">
         <div v-if="allowOperations" class="action-list">
-          <div class="action" :title="`rename ${nodeType}`" @click="renameNode()">
+          <div class="action" :title="`rename ${nodeType}`" @click="$refs.renameModal.open()">
             <i class="material-icons">{{Icon.TEXT_FORMAT}}</i>
             Rename {{nodeType}}
           </div>
@@ -134,13 +134,30 @@
         </div>
       </template>
     </template>
-
     <template v-else>
       <div v-if="!currentObject" class="explorer-preview-empty">
         <span>{{ $i18n(`no${uNodeType}Selected`) }}</span>
         <i class="material-icons">info</i>
       </div>
     </template>
+
+    <admin-components-materializemodal
+        ref="renameModal"
+        v-on:ready="onReady">
+        <h3>{{$i18n(`Rename ${uNodeType}`)}}</h3>
+        <vue-form-generator
+                :model   ="formmodel"
+                :schema  ="nameSchema"
+                :options ="formOptions"
+                ref      ="renameForm">
+        </vue-form-generator>
+        <template slot="footer">
+            <admin-components-confirmdialog
+                submitText="submit"
+                v-on:confirm-dialog="onConfirmDialog"
+                nodeType="name"/>
+        </template>
+    </admin-components-materializemodal>
 
     <admin-components-pathbrowser
         v-if="isOpen"
@@ -162,6 +179,7 @@
 <script>
   import {Icon, MimeType, NodeType, SUFFIX_PARAM_SEPARATOR} from '../../../../../../js/constants'
   import {deepClone} from '../../../../../../js/utils'
+  import NodeNameValidation from '../../../../../../js/mixins/NodeNameValidation'
 
   const Tab = {
     INFO: 'info',
@@ -238,6 +256,7 @@
         }
       }
     },
+    mixins: [NodeNameValidation],
     computed: {
       uNodeType() {
         return this.capFirstLetter(this.nodeType);
@@ -298,6 +317,9 @@
           nodeName = this.node.path.split('/').slice(-1).pop()
         }
         return nodeName
+      },
+      validateNewName(val) {
+
       }
     },
     watch: {
@@ -400,13 +422,31 @@
         this.valid.state = isValid;
         this.valid.errors = errors;
       },
-      renameNode() {
-        const newName = prompt(`new name for "${this.nodeName}"`)
-        if (newName) {
+      onConfirmDialog (event) {
+        if (event === 'confirm') {
+            const isValid = this.$refs.renameForm.validate()
+            if (isValid) {
+                this.renameNode(this.$refs.renameForm.model.name, this.$refs.renameForm.model.title)
+            } else {
+                return
+            }
+        }
+        this.nameChanged = false
+        this.$refs.renameForm.model.name = ''
+        this.$refs.renameForm.model.title = ''
+        this.$refs.renameForm.clearValidationErrors()
+        this.$refs.renameModal.close()
+      },
+      onReady (event) {
+        this.$refs.renameForm.model.name = this.node.name
+        this.$refs.renameForm.model.title = this.node.title
+      },
+      renameNode(newName, newTitle) {
           const that = this;
           $perAdminApp.stateAction(`rename${this.uNodeType}`, {
             path: this.currentObject,
             name: newName,
+            title: newTitle,
             edit: this.isEdit
           }).then(() => {
             if (that.nodeType === 'asset' || that.nodeType === 'object') {
@@ -422,7 +462,6 @@
               $perAdminApp.getNodeFromView('/state/tools')[that.nodeType] = currNodeArr.join('/')
             }
           });
-        }
       },
       moveNode() {
         $perAdminApp.getApi().populateNodesForBrowser(this.path.current, 'pathBrowser')

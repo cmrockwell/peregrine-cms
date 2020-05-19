@@ -139,8 +139,8 @@ class PerApi {
         return impl.deleteSite(name, path)
     }
 
-    renamePage(path, newName) {
-        return impl.renamePage(path, newName)
+    renamePage(path, newName, newTitle) {
+        return impl.renamePage(path, newName, newTitle)
     }
 
     movePage(path, to, type) {
