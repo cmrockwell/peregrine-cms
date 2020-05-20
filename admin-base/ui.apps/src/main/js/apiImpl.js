@@ -588,10 +588,11 @@ class PerAdminImpl {
         .then(() => this.populateNodesForBrowser(path))
   }
 
-  renameAsset(path, newName) {
+  renameAsset(path, newName, newTitle) {
     return new Promise((resolve, reject) => {
       let data = new FormData()
       data.append('to', newName)
+      data.append('title', newTitle)
       updateWithForm('/admin/asset/rename.json' + path, data)
           .then((data) => this.populateNodesForBrowser(path))
           .then(() => resolve())

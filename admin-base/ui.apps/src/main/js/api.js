@@ -179,8 +179,8 @@ class PerApi {
         return impl.deleteAsset(path)
     }
 
-    renameAsset(path, newName) {
-        return impl.renameAsset(path, newName)
+    renameAsset(path, newName, newTitle) {
+        return impl.renameAsset(path, newName, newTitle)
     }
 
     moveAsset(path, to, type) {

@@ -31,7 +31,7 @@ export default function(me, target) {
     log.fine(target)
     var api = me.getApi()
     return new Promise( (resolve, reject) => {
-        api.renameAsset(target.path, target.name).then( () => {
+        api.renameAsset(target.path, target.name, target.title).then( () => {
             let path = me.getNodeFromView('/state/tools/assets')
             me.loadContent('/content/admin/pages/assets.html/path'+SUFFIX_PARAM_SEPARATOR+ path)
             resolve()
