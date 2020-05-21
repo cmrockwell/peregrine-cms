@@ -143,8 +143,8 @@
 
     <admin-components-materializemodal
         ref="renameModal"
+        v-bind:modalTitle="modalTitle"
         v-on:ready="onReady">
-        <h3>{{$i18n(`Rename ${uNodeType}`)}}</h3>
         <vue-form-generator
                 :model   ="formmodel"
                 :schema  ="nameSchema"
@@ -260,6 +260,9 @@
     computed: {
       uNodeType() {
         return this.capFirstLetter(this.nodeType);
+      },
+      modalTitle() {
+        return `Rename ${this.uNodeType}`
       },
       rawCurrentObject() {
         return $perAdminApp.getNodeFromViewOrNull(`/state/tools/${this.nodeType}`);
@@ -426,20 +429,20 @@
         if (event === 'confirm') {
             const isValid = this.$refs.renameForm.validate()
             if (isValid) {
-                this.renameNode(this.$refs.renameForm.model.name, this.$refs.renameForm.model.title)
+                this.renameNode(this.formmodel.name, this.formmodel.title)
             } else {
                 return
             }
         }
         this.nameChanged = false
-        this.$refs.renameForm.model.name = ''
-        this.$refs.renameForm.model.title = ''
+        this.formmodel.name = ''
+        this.formmodel.title = ''
         this.$refs.renameForm.clearValidationErrors()
         this.$refs.renameModal.close()
       },
       onReady (event) {
-        this.$refs.renameForm.model.name = this.node.name
-        this.$refs.renameForm.model.title = this.node.title
+        this.formmodel.name = this.node.name
+        this.formmodel.title = this.node.title
       },
       renameNode(newName, newTitle) {
           const that = this;
@@ -462,7 +465,7 @@
               $perAdminApp.getNodeFromView('/state/tools')[that.nodeType] = currNodeArr.join('/')
             }
             this.setActiveTab(Tab.INFO)
-          });
+          })
       },
       moveNode() {
         $perAdminApp.getApi().populateNodesForBrowser(this.path.current, 'pathBrowser')
