@@ -14,13 +14,9 @@
 <script>
 
 export default {
-
     props: {
-        valid: Boolean,
-        edit: Boolean,
-        nodeType: String,
         cancelText: {type: String, default: "cancel"},
-        submitText: String,
+        submitText: String
     },
     methods: {
         cancelEdit(){

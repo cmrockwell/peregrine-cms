@@ -154,8 +154,7 @@
         <template slot="footer">
             <admin-components-confirmdialog
                 submitText="submit"
-                v-on:confirm-dialog="onConfirmDialog"
-                nodeType="name"/>
+                v-on:confirm-dialog="onConfirmDialog" />
         </template>
     </admin-components-materializemodal>
 
