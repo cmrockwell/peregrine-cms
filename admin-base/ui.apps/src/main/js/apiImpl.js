@@ -648,6 +648,10 @@ class PerAdminImpl {
       updateWithForm('/admin/page/rename.json' + path, data)
           .then((data) => this.populateNodesForBrowser(path))
           .then(() => resolve())
+          .catch(error => {
+              logger.error('Failed to change name: ' + error)
+              reject('Unable to change name. ' + error)
+          })
     })
   }
 
