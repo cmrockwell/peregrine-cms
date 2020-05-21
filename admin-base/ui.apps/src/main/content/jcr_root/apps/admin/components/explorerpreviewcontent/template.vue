@@ -319,9 +319,6 @@
           nodeName = this.node.path.split('/').slice(-1).pop()
         }
         return nodeName
-      },
-      validateNewName(val) {
-
       }
     },
     watch: {
