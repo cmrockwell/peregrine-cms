@@ -51,36 +51,36 @@ export default {
                 value = event.data
             }
             if(!value || value.length === 0) {
-                return ['name is required.']
+                return [this.$i18n('Name is required.')]
             }
             let regExMatch = /[^0-9a-zA-Z_-]/
-            let errorMsg = 'page names may only contain letters, numbers, underscores, and dashes'
+            let errorMsg = 'Page names may only contain letters, numbers, underscores, and dashes'
             if (this.uNodeType === "Asset") {
                 regExMatch = /[^0-9a-z.A-Z_-]/
-                errorMsg = 'assets names may only contain letters, numbers, underscores, and dashes'
+                errorMsg = 'Assets names may only contain letters, numbers, underscores, and dashes'
             }
 
             if (value.match(regExMatch)) {
-                return [errorMsg]
+                return [this.$i18n(errorMsg)]
             }
             return [];
         },
         nameAvailable: function(value) {
             if(!value || value.length === 0) {
-                return ['name is required']
+                return [this.$i18n('Name is required')]
             }
             if (this.node) {
                 const parent = this.node.path.replace("/"+this.node.name, "")
                 if ($perAdminApp.getApi().nameAvailable(value, parent)) {
                     return []
                 } else {
-                    return ['name aready in use']
+                    return [this.$i18n('Name is already in use')]
                 }
             } else {
                 const folder = $perAdminApp.findNodeFromPath($perAdminApp.getView().admin.nodes, this.formmodel.path)
                 for(let i = 0; i < folder.children.length; i++) {
                     if(folder.children[i].name === value) {
-                        return ['name aready in use']
+                        return [this.$i18n('Name is already in use.')]
                     }
                 }
                 return []
