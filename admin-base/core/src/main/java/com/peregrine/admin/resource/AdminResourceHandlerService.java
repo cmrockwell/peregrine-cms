@@ -637,6 +637,10 @@ public class AdminResourceHandlerService
         }
         try {
             final Resource answer = resourceRelocation.rename(fromResource, newName, true);
+            ModifiableValueMap mvm = getModifiableProperties(answer, true);
+            if (mvm != null && mvm.containsKey(NAME_PROPERTY)) {
+                mvm.put(NAME_PROPERTY, newName);
+            }
             baseResourceHandler.updateModification(answer);
             return answer;
         } catch (Exception e) {
@@ -1529,6 +1533,9 @@ public class AdminResourceHandlerService
             ValueMap properties = getModifiableProperties(resource, false);
             if (properties.containsKey(JCR_TITLE)) {
                 properties.put(JCR_TITLE, title);
+            }
+            if (properties.containsKey(TITLE)){
+                properties.put(TITLE, title);
             }
         }
     }

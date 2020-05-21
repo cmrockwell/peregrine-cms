@@ -77,7 +77,6 @@ export default {
                     return ['name aready in use']
                 }
             } else {
-                $perAdminApp.getApi().nameAvailable
                 const folder = $perAdminApp.findNodeFromPath($perAdminApp.getView().admin.nodes, this.formmodel.path)
                 for(let i = 0; i < folder.children.length; i++) {
                     if(folder.children[i].name === value) {

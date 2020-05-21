@@ -84,8 +84,8 @@ public class MoveServlet extends AbstractBaseServlet {
     protected Response handleRequest(Request request) throws IOException {
         final String fromPath = request.getParameter(PATH);
         final String newTitle = request.getParameter(TITLE);
-        Resource from = PerUtil.getResource(request.getResourceResolver(), fromPath);
         final String toPath = request.getParameter(TO);
+        Resource from = PerUtil.getResource(request.getResourceResolver(), fromPath);
         Resource newResource;
         if(request.getResource().getName().equals(MOVE)) {
             String type = request.getParameter(TYPE);
