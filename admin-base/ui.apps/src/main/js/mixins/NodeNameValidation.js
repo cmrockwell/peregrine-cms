@@ -20,11 +20,11 @@ export default {
                     {
                         type: "input",
                         inputType: "text",
-                        label: "Page Title",
+                        label: "Title",
                         model: "title",
                         required: true,
                         onChanged: (model, newVal, oldVal, field) => {
-                          if(!this.nameChanged) {
+                          if(!this.nameChanged && this.uNodeType !== "Asset") {
                               this.formmodel.name = $perAdminApp.normalizeString(newVal);
                           }
                         }
@@ -32,7 +32,7 @@ export default {
                     {
                         type: "input",
                         inputType: "text",
-                        label: "Page Name",
+                        label: "Name",
                         model: "name",
                         required: true,
                         onChanged: (model, newVal, oldVal, field) => {
@@ -53,8 +53,15 @@ export default {
             if(!value || value.length === 0) {
                 return ['name is required.']
             }
-            if(value.match(/[^0-9a-zA-Z_-]/)) {
-                return ['page names may only contain letters, numbers, underscores, and dashes']
+            let regExMatch = /[^0-9a-zA-Z_-]/
+            let errorMsg = 'page names may only contain letters, numbers, underscores, and dashes'
+            if (this.uNodeType === "Asset") {
+                regExMatch = /[^0-9a-z.A-Z_-]/
+                errorMsg = 'assets names may only contain letters, numbers, underscores, and dashes'
+            }
+
+            if (value.match(regExMatch)) {
+                return [errorMsg]
             }
             return [];
         },
@@ -64,8 +71,6 @@ export default {
             }
             if (this.node) {
                 const parent = this.node.path.replace("/"+this.node.name, "")
-                console.log(this.node)
-                console.log(parent)
                 if ($perAdminApp.getApi().nameAvailable(value, parent)) {
                     return []
                 } else {

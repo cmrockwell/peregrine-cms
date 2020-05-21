@@ -1533,6 +1533,14 @@ public class AdminResourceHandlerService
         }
     }
 
+    public void updateOrCreateAssetTitle(Resource resource, String title) {
+        if (JCR_CONTENT.equals(resource.getName())) {
+            ValueMap properties = getModifiableProperties(resource, false);
+            properties.put(TITLE, title);
+            properties.put(JCR_TITLE, title);
+        }
+    }
+
     private final class StructureCopier {
 
         private final ResourceResolver resourceResolver;
