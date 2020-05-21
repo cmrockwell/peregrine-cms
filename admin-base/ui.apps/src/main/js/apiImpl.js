@@ -596,6 +596,10 @@ class PerAdminImpl {
       updateWithForm('/admin/asset/rename.json' + path, data)
           .then((data) => this.populateNodesForBrowser(path))
           .then(() => resolve())
+          .catch(error => {
+              logger.error('Failed to change name: ' + error)
+              reject('Unable to change name. ' + error)
+          })
     })
   }
 
