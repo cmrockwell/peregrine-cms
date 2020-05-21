@@ -104,10 +104,12 @@ public class MoveServlet extends AbstractBaseServlet {
         } else if(request.getResource().getName().equals(RENAME)) {
             try {
                 newResource = resourceManagement.rename(from, toPath);
-                if (newResource.getResourceType().equals("per:Asset")){
-                    resourceManagement.updateOrCreateAssetTitle(newResource.getChild(JCR_CONTENT), newTitle);
-                } else {
-                    resourceManagement.updateTitle(newResource.getChild(JCR_CONTENT), newTitle);
+                if (newTitle != null && !newTitle.isEmpty()) {
+                    if (newResource.getResourceType().equals("per:Asset")){
+                        resourceManagement.updateOrCreateAssetTitle(newResource.getChild(JCR_CONTENT), newTitle);
+                    } else {
+                        resourceManagement.updateTitle(newResource.getChild(JCR_CONTENT), newTitle);
+                    }
                 }
             } catch(ManagementException e) {
                 return new ErrorResponse()
