@@ -461,6 +461,7 @@
               currNodeArr[currNodeArr.length - 1] = newName
               $perAdminApp.getNodeFromView('/state/tools')[that.nodeType] = currNodeArr.join('/')
             }
+            this.setActiveTab(Tab.INFO)
           });
       },
       moveNode() {
