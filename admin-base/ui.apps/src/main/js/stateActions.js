@@ -75,6 +75,8 @@ import createAssetFolderWizard from './stateActions/createAssetFolderWizard'
 import createObjectFolderWizard from './stateActions/createObjectFolderWizard'
 import savePageProperties from './stateActions/savePageProperties'
 import replicate from './stateActions/replicate'
+import publish from './stateActions/publish'
+import unreplicate from './stateActions/unreplicate'
 import moveTemplate from './stateActions/moveTemplate'
 import renameObject from './stateActions/renameObject'
 import moveObject from './stateActions/moveObject'
@@ -87,6 +89,11 @@ import setTenant from './stateActions/setTenant'
 import recycleItem from './stateActions/recycleItem'
 import deleteRecyclable from './stateActions/deleteRecyclable'
 import tenantSetupReplication from './stateActions/tenantSetupReplication'
+import backupTenant from "./stateActions/backupTenant";
+import downloadBackupTenant from "./stateActions/downloadBackupTenant";
+import uploadBackupTenant from "./stateActions/uploadBackupTenant";
+import restoreTenant from "./stateActions/restoreTenant";
+import acceptTermsAndConditions from './stateActions/acceptTermsAndConditions'
 
 let log = LoggerFactory.logger('actions').setLevelDebug()
 
@@ -144,6 +151,8 @@ actions['createObjectFolderWizard'] = createObjectFolderWizard
 actions['renameObject'] = renameObject
 actions['savePageProperties'] = savePageProperties
 actions['replicate'] = replicate
+actions['publish'] = publish
+actions['unreplicate'] = unreplicate
 actions['moveObject'] = moveObject
 actions['showTemplateInfo'] = showPageInfo
 actions['saveTemplateProperties'] = savePageProperties
@@ -157,6 +166,11 @@ actions['createVersion'] = createVersion
 actions['restoreVersion'] = restoreVersion
 actions['setTenant'] = setTenant
 actions['tenantSetupReplication'] = tenantSetupReplication
+actions['backupTenant'] = backupTenant
+actions['downloadBackupTenant'] = downloadBackupTenant
+actions['uploadBackupTenant'] = uploadBackupTenant
+actions['restoreTenant'] = restoreTenant
+actions['acceptTermsAndConditions'] = acceptTermsAndConditions
 
 
 function noopAction(me, target) {

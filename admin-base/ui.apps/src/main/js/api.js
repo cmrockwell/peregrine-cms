@@ -100,6 +100,10 @@ class PerApi {
         return impl.populateTenants()
     }
 
+    populateBackupInfo(backup) {
+        return impl.populateBackupInfo(backup)
+    }
+
     populateRecyclebin(page) {
         return impl.populateRecyclebin(page)
     }
@@ -107,8 +111,13 @@ class PerApi {
     populateVersions(page) {
         return impl.populateVersions(page)
     }
-    setInitialPageEditorState() {
-        return impl.setInitialPageEditorState()
+
+    populateReferences(path) {
+        return impl.populateReferences(path)
+    }
+
+    setInitialPageEditorState(path) {
+        return impl.setInitialPageEditorState(path)
     }
 
     populateByName(name) {
@@ -258,8 +267,8 @@ class PerApi {
         return impl.moveNodeTo(path, component, drop)
     }
 
-    replicate(path) {
-        return impl.replicate(path)
+    replicate(path, replicationService, deep, deactivate, references) {
+        return impl.replicate(path, replicationService, deep, deactivate, references)
     }
 
     getPalettes(templateName) {
@@ -270,8 +279,28 @@ class PerApi {
         return impl.tenantSetupReplication(path, withSite)
     }
 
+    backupTenant(path) {
+        return impl.backupTenant(path)
+    }
+
+    downloadBackupTenant(path) {
+        return impl.downloadBackupTenant(path)
+    }
+
+    uploadBackupTenant(path, files, cb) {
+        return impl.uploadBackupTenant(path, files, cb)
+    }
+
+    restoreTenant(path) {
+        return impl.restoreTenant(path)
+    }
+
     fetchRecyclables(siteName) {
         return impl.fetchRecyclables(siteName)
+    }
+
+    acceptTermsAndConditions() {
+        return impl.acceptTermsAndConditions()
     }
 }
 

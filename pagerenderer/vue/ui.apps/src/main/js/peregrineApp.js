@@ -133,14 +133,19 @@ function registerViewImpl(v) {
 }
 
 function getView() {
-    if(window && window.parent && window.parent.$perAdminView && window.parent.$perAdminView.pageView) {
-        var mode = window.frameElement.attributes['data-per-mode'] ? window.frameElement.attributes['data-per-mode'].value : null;
-        if(mode === 'tutorial') { 
-            return view;
-        } else {
-            log.fine("getVIEW() - window.parent.perAdminView.pageView");
-            return window.parent.$perAdminView.pageView
+    try {
+        if(window && window.parent && window.parent.$perAdminView && window.parent.$perAdminView.pageView) {
+            var mode = window.frameElement.attributes['data-per-mode'] ? window.frameElement.attributes['data-per-mode'].value : null;
+            if(mode === 'tutorial') { 
+                return view;
+            } else {
+                log.fine("getVIEW() - window.parent.perAdminView.pageView");
+                return window.parent.$perAdminView.pageView
+            }
         }
+        return view
+    } catch (error) {
+        // different origin
     }
     return view
 }
@@ -158,8 +163,12 @@ function loadComponentImpl(name) {
             Vue.component(name, window[varName])
         }
         // if we are in edit mode push the component to the perAdminApp as well
-        if(window.parent.$perAdminApp && !window.parent[varName]) {
-            window.parent[varName] = window[varName]
+        try {
+            if(window.parent.$perAdminApp && !window.parent[varName]) {
+                window.parent[varName] = window[varName]
+            }
+        } catch (error) {
+            // same origin
         }
         loadedComponents[name] = true
 
@@ -241,17 +250,32 @@ function processLoadedContent(data, path, firstTime, fromPopState) {
         if(document.location !== path && !fromPopState) {
             log.fine("PUSHSTATE : " + path);
             document.title = getPerView().page.title + ' | ' + getPerView().page.brand  
+
+            var canonical = document.querySelector('link[rel="canonical"]')
+            if(canonical) canonical.href = getPerView().page.canonicalUrl
+
+            updateMetaName("robots", getPerView().page.metaRobots)
+            updateOpenGraph()
+
             var url = document.location.href
             var domains = (getPerView().page.domains)
             var newLocation = path
             if (domains) {
                 for (var i = 0; i < domains.length; i++) {
                     var domain = domains[i]
-                    if (url.startsWith(domain)) {
+                    // if the URL matches the desired domain, and the domain does not include a path
+                    if (url.startsWith(domain) && !(domain.match(/\w\/\w/) && domain.lastIndexOf('/') > 7)) {
                         newLocation = '/' + path.split('/').slice(4).join('/')
+                        break
+                    } else if (domain.match(/\w\/\w/) && domain.lastIndexOf('/') > 7) {
+                        // domain contains a path
+                        newLocation = path.replace(/\/content(\/\w+)\/pages(\/.+)/,"$1$2")
+                        break
                     }
                 }
             }
+            // hide index.html
+            newLocation = newLocation.replace("/index.html", "")
             if(firstTime) {
                 history.replaceState({peregrinevue: true, path: path}, path, newLocation)
             } else {
@@ -308,16 +332,54 @@ function loadContentImpl(path, firstTime, fromPopState, onPage = false) {
     }
 }
 
+function updateOpenGraph() {
+    updateMetaProps('og:title', getPerView().page.ogTitle)
+    updateMetaProps('og:description', getPerView().page.ogDescription)
+    updateMetaProps('og:image', getPerView().page.absOgImage)
+    updateMetaProps('og:url', getPerView().page.canonicalUrl)
+}
+
+function updateMetaName(key, val) {
+    updateMeta(key, val, "name")
+}
+
+function updateMetaProps(key, val) {
+    updateMeta(key, val, "property")
+}
+
+function updateMeta(key, val, type) {
+    var meta = document.querySelector("meta[" + CSS.escape(type) + "=" +  CSS.escape(key) + "]")
+
+    if (meta) {
+      if (val) {
+        meta.content = val
+      } else {
+        meta.parentNode.removeChild(meta);
+      }
+    } else {
+      if (val) {
+        var el = document.createElement('meta');
+        el.setAttribute(type, key);
+        el.content = val;
+        document.getElementsByTagName('head')[0].appendChild(el);
+      }
+    }
+}
+
 function isAuthorModeImpl() {
 
-    if(window && window.parent && window.frameElement && window.frameElement.attributes['data-per-mode']) {
-        var mode = window.frameElement.attributes['data-per-mode'].value;
-        if(mode === 'preview' || mode === 'tutorial') {
-            return false
+    try {
+        if(window && window.parent && window.frameElement && window.frameElement.attributes['data-per-mode']) {
+            var mode = window.frameElement.attributes['data-per-mode'].value;
+            if(mode === 'preview' || mode === 'tutorial') {
+                return false
+            }
         }
-    }
-    if(window && window.parent && window.parent.$perAdminView && window.parent.$perAdminView.pageView) {
-        return true
+        if(window && window.parent && window.parent.$perAdminView && window.parent.$perAdminView.pageView) {
+            return true
+        }
+    } catch(error) {
+        // same origin
     }
     return false
     

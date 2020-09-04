@@ -45,6 +45,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      white-space: nowrap;
 
       &.disabled {
         cursor: default;
@@ -52,10 +53,21 @@
         color: var(--pcms-gray);
       }
 
-      .material-icons {
+      .material-icons,
+      .label,
+      .fa {
         margin-left: .5rem;
         margin-right: auto;
         transition: margin .3s ease-out;
+      }
+
+      .label {
+        width: 20px !important;
+        color: #000000 !important;
+        display: flex;
+        justify-content: left;
+        align-items: center;
+        font-size: 1.15rem !important;
       }
 
       .center-keeper {
@@ -67,7 +79,8 @@
 
       &:not(.disabled) {
         &:hover {
-          .material-icons {
+          .material-icons,
+          .fa {
             margin-left: .8rem;
           }
 
@@ -76,6 +89,11 @@
           }
         }
       }
+    }
+
+    &.scrollable {
+      min-width: 215px;
+      overflow-y: scroll !important;
     }
   }
 }
