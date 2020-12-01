@@ -46,10 +46,7 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -119,10 +116,9 @@ public class ModPageSpeedCacheInvalidationService
     private ReferenceLister referenceLister;
 
     @Override
-    public List<Resource> replicate(final Resource resource, boolean deep)
-            throws ReplicationException
+    public List<Resource> findReferences(Resource source, boolean deep)
     {
-        // nooop
+        // no op
         return Collections.emptyList();
     }
 
@@ -134,7 +130,7 @@ public class ModPageSpeedCacheInvalidationService
     }
 
     @Override
-    public List<Resource> replicate(List<Resource> resourceList) throws ReplicationException
+    public List<Resource> replicate(Collection<Resource> resourceList) throws ReplicationException
     {
         if (StringUtils.isNotBlank(cacheInvalidationUrl))
         {
@@ -153,7 +149,7 @@ public class ModPageSpeedCacheInvalidationService
         return Collections.emptyList();
     }
 
-    private Set<String> getSitesInvalidationUrls(final List<Resource> resources)
+    private Set<String> getSitesInvalidationUrls(final Collection<Resource> resources)
     {
         Set<String> siteInvalidationUls = new HashSet<>();
         Set<String> sites = new HashSet<String>();

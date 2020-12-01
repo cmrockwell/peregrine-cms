@@ -28,6 +28,7 @@ package com.peregrine.commons.util;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.CaseFormat;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.resource.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,8 +39,10 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Matcher;
 
 import static com.peregrine.commons.util.PerConstants.*;
+import static java.util.Objects.isNull;
 import static org.apache.commons.lang3.StringUtils.*;
 
 /**
@@ -331,13 +334,33 @@ public class PerUtil {
                 .orElse(null);
     }
 
+    public static boolean isJcrContent(final String path) {
+        return PerConstants.JCR_CONTENT.equals(StringUtils.substringAfterLast(SLASH + path, SLASH));
+    }
+
+    public static boolean isJcrContent(final Resource resource) {
+        return PerConstants.JCR_CONTENT.equals(resource.getName());
+    }
+
     public static Resource getJcrContent(final Resource resource) {
-        if (PerConstants.JCR_CONTENT.equals(resource.getName())) {
+        if (isJcrContent(resource)) {
             return resource;
         }
 
-        return resource.getChild(PerConstants.JCR_CONTENT);
+        return getProperJcrContent(resource);
+    }
+
+    public static String getJcrContent(final String path) {
+        if (isJcrContent(path)) {
+            return path;
         }
+
+        return path + SLASH + PerConstants.JCR_CONTENT;
+    }
+
+    public static Resource getProperJcrContent(final Resource resource) {
+        return resource.getChild(PerConstants.JCR_CONTENT);
+    }
 
     public static Resource getJcrContentOrSelf(final Resource resource) {
         return Optional.ofNullable(getJcrContent(resource))
@@ -411,45 +434,47 @@ public class PerUtil {
      *                         if children resources are traversed
      * @param deep If true this goes down recursively any children
      */
-    public static void listMissingResources(
+    public static <C extends Collection<Resource>> C listMissingResources(
             final Resource startingResource,
-            final List<Resource> response,
+            final C response,
             final ResourceChecker resourceChecker,
             final boolean deep) {
         ResourceChecker childResourceChecker = resourceChecker;
-        if (startingResource == null || resourceChecker == null || response == null) {
-            return;
+        if (isNull(startingResource) || isNull(resourceChecker) || isNull(response)) {
+            return response;
         }
 
-        if(resourceChecker.doAdd(startingResource)) {
-            if(!containsResource(response, startingResource)) {
+        if (resourceChecker.doAdd(startingResource)) {
+            if (!containsResource(response, startingResource)) {
                 response.add(startingResource);
             }
             // If this is JCR Content we need to add all children
-            if (PerConstants.JCR_CONTENT.equals(startingResource.getName())) {
-                    childResourceChecker = new AddAllResourceChecker();
+            if (isJcrContent(startingResource)) {
+                childResourceChecker = new AddAllResourceChecker();
             }
         }
 
         if (!resourceChecker.doAddChildren(startingResource)) {
-            return;
+            return response;
         }
 
         for (final Resource child : startingResource.getChildren()) {
-            if (deep || PerConstants.JCR_CONTENT.equals(child.getName())) {
+            if (deep || isJcrContent(child)) {
                 listMissingResources(child, response, childResourceChecker, true);
             }
         }
+
+        return response;
     }
 
-    public static boolean containsResource(final List<Resource> resources, final Resource check) {
-        if (check == null) {
+    public static boolean containsResource(final Collection<Resource> resources, final Resource check) {
+        if (isNull(check)) {
             return true;
-    }
+        }
 
         final String path = check.getPath();
         for (final Resource item : resources) {
-                if(path.equals(item.getPath())) {
+            if (path.equals(item.getPath())) {
                 return true;
             }
         }
@@ -546,6 +571,15 @@ public class PerUtil {
      */
     public static boolean isPrimaryType(final Resource resource, final String primaryType) {
         return isPropertyEqual(resource, JCR_PRIMARY_TYPE, primaryType);
+    }
+
+    public static boolean isUnfrozenPrimaryType(final Resource resource, final String primaryType) {
+        if (isPrimaryType(resource, primaryType)) {
+            return true;
+        }
+
+        return isPrimaryType(resource, JcrConstants.NT_FROZENNODE)
+                && isPropertyEqual(resource, JcrConstants.JCR_FROZENPRIMARYTYPE, primaryType);
     }
 
     /**
@@ -883,5 +917,86 @@ public class PerUtil {
         }
         @Override
         public boolean doAddChildren(Resource resource) { return true; }
+    }
+
+    /**
+     * Extracts the tenant name from the resource
+     * @param resource a resource
+     * @return tenant name on success, and <code>null</code> otherwise
+     */
+    public static String getTenantNameFromResource(Resource resource) {
+        while (resource != null) {
+            try {
+                Node node = resource.adaptTo(Node.class);
+                final String name = resource.getName();
+                final int depth = node.getDepth();
+                if (depth == 2) {
+                    return name;
+                }
+
+                if (depth == 1 && !"content".equals(name)) {
+                    return null;
+                }
+
+                resource = resource.getParent();
+            } catch (RepositoryException e) {
+                LOG.error("Error getting tenant name from resource: '{}'", resource);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Extracts the tenant name for the path
+     * @param path a path
+     * @return tenant name on success, and <code>null</code> otherwise
+     */
+    public static String getTenantNameFromPath(final String path) {
+        String tenantName = null;
+
+        if (StringUtils.isNotBlank(path)) {
+            Matcher matcher = TENANT_PATH_PATTERN.matcher(path);
+            if (matcher.matches() && matcher.groupCount() == 1) {
+                tenantName = matcher.group(1);
+            }
+        }
+
+        return tenantName;
+    }
+
+    /**
+     * Obtains the /var path for a given tenant by resource.
+     * @param resource this can be any resource under the tenant.
+     * @return the /var path for the tenant on succss, and <code>null</code> otherwise.
+     */
+    public static String getTenantVarPath(final Resource resource) {
+        String path = null;
+
+        final String tenantName = getTenantNameFromResource(resource);
+        if (StringUtils.isNotBlank(tenantName)) {
+           path = TENANT_VAR_PATH_TEMPLATE.replace("{TENANT}", tenantName);
+        }
+
+        return path;
+    }
+
+    /**
+     * Obtains the tenant root resource
+     * @param resource this can be any resource under the tenant
+     * @return tenant root resource on success, and <code>null</code> otherwise.
+     */
+    public static Resource getTenantRootResource(final Resource resource) {
+       Resource tenantRoot = null;
+
+       if (resource != null) {
+           final String tenantName = getTenantNameFromResource(resource);
+           if (StringUtils.isNotBlank(tenantName)) {
+               tenantRoot = resource.getResourceResolver().getResource(TENANT_ROOT_PATH_TEMPLATE.replace("{TENANT}", tenantName));
+           }
+
+       }
+
+       return tenantRoot;
     }
 }

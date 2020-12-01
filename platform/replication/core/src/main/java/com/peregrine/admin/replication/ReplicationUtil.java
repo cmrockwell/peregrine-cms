@@ -1,6 +1,6 @@
 package com.peregrine.admin.replication;
 
-import com.peregrine.commons.ResourceUtils;
+import com.peregrine.adaption.PerReplicable;
 import org.apache.sling.api.resource.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,12 +13,21 @@ import javax.jcr.nodetype.NodeTypeIterator;
 import javax.jcr.nodetype.NodeTypeManager;
 import javax.jcr.query.Query;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
 
 import static com.peregrine.admin.replication.impl.DistributionReplicationService.DISTRIBUTION_PENDING;
-import static com.peregrine.commons.util.PerConstants.*;
+import static com.peregrine.commons.util.PerConstants.JCR_CONTENT;
+import static com.peregrine.commons.util.PerConstants.PER_REPLICATED;
+import static com.peregrine.commons.util.PerConstants.PER_REPLICATED_BY;
+import static com.peregrine.commons.util.PerConstants.PER_REPLICATION;
+import static com.peregrine.commons.util.PerConstants.PER_REPLICATION_REF;
 import static com.peregrine.commons.util.PerUtil.getModifiableProperties;
 import static com.peregrine.commons.util.PerUtil.isEmpty;
+import static com.peregrine.commons.util.PerUtil.isJcrContent;
 
 public class ReplicationUtil {
 
@@ -100,11 +109,13 @@ public class ReplicationUtil {
                 ModifiableValueMap sourceProperties = getModifiableProperties(source, false);
                 if (sourceProperties != null) {
                     Calendar replicated = Calendar.getInstance();
+                    final ResourceResolver resourceResolver = source.getResourceResolver();
                     if (DISTRIBUTION_PENDING.equals(targetPath)) {
+                        // Note for remote replication use-case
                         // updateReplicationProperties will be called twice. The first time will include a resource
-                        // obtained from the user initiating resource publishing. In this case targetPath will be "distribution pending"
+                        //   obtained from the user initiating resource publishing. In this case targetPath will be "distribution pending"
                         // TODO: CR add replication status to the per:Replication mixin such that these inferences are not needed.
-                        sourceProperties.put(PER_REPLICATED_BY, source.getResourceResolver().getUserID());
+                        sourceProperties.put(PER_REPLICATED_BY, resourceResolver.getUserID());
                     }
                     sourceProperties.put(PER_REPLICATED, replicated);
                     LOGGER.trace("Updated Source Replication Properties");
@@ -119,7 +130,7 @@ public class ReplicationUtil {
                         ensureMixin(target);
                         try {
                             ModifiableValueMap targetProperties = getModifiableProperties(target, false);
-                            String userId = source.getResourceResolver().getUserID();
+                            String userId = resourceResolver.getUserID();
                             LOGGER.trace("Replication User Id: '{}' for target: '{}'", userId, target.getPath());
                             // TODO: Refactor duplicated code
                             if (DISTRIBUTION_PENDING.equals(targetPath)) {
@@ -140,6 +151,8 @@ public class ReplicationUtil {
                             throw e;
                         }
                     }
+
+                    refreshAndCommit(resourceResolver);
                 } else {
                     LOGGER.debug("Source: '{}' is not writable -> ignored", source);
                 }
@@ -147,7 +160,15 @@ public class ReplicationUtil {
         }
     }
 
-
+    private static void refreshAndCommit(final ResourceResolver resourceResolver) {
+        resourceResolver.refresh();
+        try {
+            resourceResolver.commit();
+        } catch (final PersistenceException e) {
+            resourceResolver.revert();
+            LOGGER.error("could not commit replication property changes", e);
+        }
+    }
 
 //    /**
 //     * References under /content for replication
@@ -222,4 +243,27 @@ public class ReplicationUtil {
         }
         return answer;
     }
+
+    public static boolean isReplicated(final Resource resource) {
+        return Optional.ofNullable(resource)
+                .map(r -> r.adaptTo(PerReplicable.class))
+                .map(PerReplicable::isReplicated)
+                .orElse(false);
+    }
+
+    public static boolean isAnyDescendantReplicated(final Resource resource) {
+        for (final Resource child : resource.getChildren()) {
+            if (!isJcrContent(child) &&
+                    (isReplicated(child) || isAnyDescendantReplicated(child))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static boolean isSelfOrAnyDescendantReplicated(final Resource resource) {
+        return isReplicated(resource) || isAnyDescendantReplicated(resource);
+    }
+
 }

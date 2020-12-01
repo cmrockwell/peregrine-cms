@@ -69,7 +69,8 @@ export default {
               this.hideGroups()
           }
           setTimeout(() => {
-            this.path = $perAdminApp.getNodeFromViewOrNull('/state/editor').path
+            const node = $perAdminApp.getNodeFromViewOrNull('/state/editor') || {}
+            this.path = node.path
           }, 0)
       },
       data() {
@@ -279,7 +280,7 @@ export default {
             const $collection = $field.$children[0]
             const activeItemIndex = parseInt(model.pop())
             if ($collection.activeItem !== activeItemIndex) {
-              $collection.onSetActiveItem(activeItemIndex)
+              $collection.activeItem = activeItemIndex
             }
             setTimeout(() => {
               const $collectionVfg = $collection.$children[0]

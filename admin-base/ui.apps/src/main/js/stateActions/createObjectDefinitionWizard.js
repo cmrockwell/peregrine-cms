@@ -1,8 +1,6 @@
-package com.peregrine.sitemap;
-
 /*-
  * #%L
- * platform base - Core
+ * admin base - UI Apps
  * %%
  * Copyright (C) 2017 headwire inc.
  * %%
@@ -24,12 +22,21 @@ package com.peregrine.sitemap;
  * under the License.
  * #L%
  */
+import { LoggerFactory } from '../logger'
+import {SUFFIX_PARAM_SEPARATOR} from "../constants";
+let log = LoggerFactory.logger('createObjectDefinitionsWizard').setLevelDebug()
 
-import org.apache.sling.api.resource.LoginException;
-import org.apache.sling.api.resource.ResourceResolver;
+export default function(me, target) {
 
-public interface ResourceResolverFactoryProxy {
+    log.fine(target)
 
-    ResourceResolver getServiceResourceResolver() throws LoginException;
+    return new Promise( (resolve, reject) => {
+        if(target.target) {
+            me.loadContent(target.target+'.html/path' + SUFFIX_PARAM_SEPARATOR +target.path)
+        } else {
+            me.loadContent('/content/admin/pages/object-definitions/create.html/path'+ SUFFIX_PARAM_SEPARATOR +target.path)
+        }
+        resolve()
+    })
 
 }
