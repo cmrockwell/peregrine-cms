@@ -47,17 +47,17 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>ianal-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>verify-legal-files</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.codehaus.mojo</groupId>-->
+<!--                <artifactId>ianal-maven-plugin</artifactId>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <goals>-->
+<!--                            <goal>verify-legal-files</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
                 <configuration>
@@ -93,13 +93,23 @@
                             <filesInclude>oak/persistence/oak_persistence_sns_fds.json</filesInclude>
                             <!-- <filesInclude>app/*.json</filesInclude> -->
                             <filesInclude>app/composum.json</filesInclude>
-                            <filesInclude>app/distribution.json</filesInclude> 
+                            <filesInclude>app/distribution.json</filesInclude>
+                            <title>Sling With Oak Segment NS Persistence (with File Datastore)</title>
+                        </aggregate>
+                        <aggregate>
+                            <classifier>oak_tar</classifier>
+                            <filesInclude>*.json</filesInclude>
+                            <filesInclude>oak/*.json</filesInclude>
+                            <filesInclude>oak/persistence/oak_persistence_sns.json</filesInclude>
+                            <filesInclude>app/composum.json</filesInclude>
+                            <filesInclude>app/distribution.json</filesInclude>
                             <title>Sling With Oak Segment NS Persistence</title>
                         </aggregate>
                     </aggregates>
                     <scans>
                         <scan>
                             <includeClassifier>oak_tar_fds</includeClassifier>
+                            <includeClassifier>oak_tar</includeClassifier>
                         </scan>
                     </scans>
                     <archives>
