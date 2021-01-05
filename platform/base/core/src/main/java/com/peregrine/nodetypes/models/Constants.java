@@ -29,4 +29,5 @@ public final class Constants {
     public static final String PEREGRINE_CONTAINER_TYPE = "per/components/structure/container";
     public static final String PEREGRINE_PAGE_TYPE = "per/components/structure/page";
     public static final String PEREGRINE_TEXT_TYPE = "per/components/content/text";
+    public static final String ALLOWED_COMPONENTS = "allowedComponents";
 }

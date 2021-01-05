@@ -31,6 +31,7 @@ import static com.peregrine.commons.util.PerConstants.JCR_TITLE;
 import static com.peregrine.commons.util.PerConstants.JSON;
 import static com.peregrine.commons.util.PerConstants.PAGE_PRIMARY_TYPE;
 import static com.peregrine.commons.util.PerConstants.SLASH;
+import static com.peregrine.nodetypes.models.Constants.ALLOWED_COMPONENTS;
 import static com.peregrine.pagerender.server.models.PageRenderServerConstants.PR_SERVER_COMPONENT_PAGE_TYPE;
 
 import com.peregrine.nodetypes.models.IComponent;
@@ -218,5 +219,16 @@ public class PageModel extends Container {
 
     public boolean getServerSide() {
         return true;
+    }
+
+    public String[] getAllowedComponents() {
+        final Resource templateRes = this.getResource().getResourceResolver().getResource(this.getTemplate());
+        if (Objects.nonNull(templateRes)) {
+            return Objects.requireNonNull(
+                templateRes.getChild(JCR_CONTENT))
+                    .getValueMap().get(ALLOWED_COMPONENTS, String[].class
+            );
+        }
+        return new String[]{};
     }
 }

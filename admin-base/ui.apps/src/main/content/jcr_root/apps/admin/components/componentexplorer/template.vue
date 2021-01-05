@@ -75,8 +75,11 @@
                 var componentPath = this.$root.$data.pageView.path.split('/')
                 var allowedComponents = ['/apps/' + componentPath[2]+ '/']
                 var list = this.$root.$data.admin.components.data
-                if (!list || !allowedComponents) return {}
-
+                // if there are no components 
+                if (!list || !allowedComponents) {
+                    return {}
+                }
+                // sorts the components
                 var sorted = list.sort(function( left, right) {
                     const leftName = (left.group + '-' + left.title).toLowerCase();
                     const rightName = (right.group + '-' + right.title).toLowerCase();
@@ -84,7 +87,13 @@
                     if(leftName > rightName) return 1;
                     return 0;
                 })
-
+                //if the page's template declares specific components to be used (template/jcr:content[allowedComponents])
+                if (!this.isTemplatePage && this.doesTemplateSpecifyComponents){                    
+                    // then remove components other allowed not mentioned in the template property
+                    sorted = sorted.filter(component => {
+                        return this.$root.$data.pageView.page.allowedComponents.includes(component.path)
+                    })
+                }
                 // Filter list to local components and with local filter
                 return sorted.filter(component => {
                     if (component.group === '.hidden') return false;
@@ -134,7 +143,14 @@
                 return view.state.tools
                     && view.state.tools.workspace
                     && view.state.tools.workspace.ignoreContainers === IgnoreContainers.ENABLED;
+            },
+            isTemplatePage() {
+                return /^\/content\/\w+\/templates$/.test(this.$root.$data.pageView.siteRoot);
+            },
+            doesTemplateSpecifyComponents() {
+                return this.$root.$data.pageView.page.allowedComponents != null && this.$root.$data.pageView.page.allowedComponents.length > 0;
             }
+
         },
         methods: {
             componentKey( component ) {

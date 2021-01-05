@@ -31,6 +31,7 @@ import static com.peregrine.commons.util.PerConstants.JCR_TITLE;
 import static com.peregrine.commons.util.PerConstants.JSON;
 import static com.peregrine.commons.util.PerConstants.PAGE_PRIMARY_TYPE;
 import static com.peregrine.commons.util.PerConstants.SLASH;
+import static com.peregrine.nodetypes.models.Constants.ALLOWED_COMPONENTS;
 import static com.peregrine.pagerender.vue.models.PageRenderVueConstants.PR_VUE_COMPONENT_PAGE_TYPE;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -493,5 +494,16 @@ public class PageModel extends Container {
         public String getValue() { return value; }
         public Boolean isProperty() { return "property".equalsIgnoreCase(metatype); }
         public Boolean isName() { return "name".equalsIgnoreCase(metatype); }
+    }
+
+    public String[] getAllowedComponents() {
+        final Resource templateRes = this.getResource().getResourceResolver().getResource(this.getTemplate());
+        if (Objects.nonNull(templateRes)) {
+            return Objects.requireNonNull(
+                    templateRes.getChild(JCR_CONTENT))
+                    .getValueMap().get(ALLOWED_COMPONENTS, String[].class
+                    );
+        }
+        return new String[]{};
     }
 }
